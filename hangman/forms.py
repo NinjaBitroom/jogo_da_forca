@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
-from .models import Aluno, Palavra, Professor, Tema
+from .models import Palavra, Tema
 
 
 class TemaForm(forms.ModelForm):
@@ -17,24 +17,15 @@ class PalavraForm(forms.ModelForm):
         fields = ["tema", "palavra", "dica", "texto"]
 
 
-class LoginForm(forms.Form):
-    username = forms.CharField(label="Usuário", max_length=100)
-    password = forms.CharField(label="Senha", widget=forms.PasswordInput)
-
-
 class UserRegisterForm(UserCreationForm):
+    group = forms.ChoiceField(
+        label="Grupo",
+        choices=(
+            ("professores", "Professor"),
+            ("alunos", "Aluno"),
+        ),
+    )
+
     class Meta:
         model = User
         fields = ["username", "password1", "password2"]
-
-
-class ProfessorRegisterForm(forms.ModelForm):
-    class Meta:
-        model = Professor
-        fields = ["nome"]
-
-
-class AlunoRegisterForm(forms.ModelForm):
-    class Meta:
-        model = Aluno
-        fields = ["nome"]

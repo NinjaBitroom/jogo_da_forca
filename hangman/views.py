@@ -1,59 +1,30 @@
-from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import Group
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import get_template
-from django.views.generic import TemplateView
+from django.urls import reverse_lazy
+from django.views.generic import CreateView, TemplateView
 from xhtml2pdf import pisa
 
 from .forms import (
-    AlunoRegisterForm,
     PalavraForm,
-    ProfessorRegisterForm,
     TemaForm,
     UserRegisterForm,
 )
 from .models import Jogo, Palavra, Tema
 
 
-def register_professor(request):
-    if request.method == "POST":
-        user_form = UserRegisterForm(request.POST)
-        professor_form = ProfessorRegisterForm(request.POST)
-        if user_form.is_valid() and professor_form.is_valid():
-            user = user_form.save()
-            professor = professor_form.save(commit=False)
-            professor.user = user
-            professor.save()
-            return redirect("login")
-    else:
-        user_form = UserRegisterForm()
-        professor_form = ProfessorRegisterForm()
-    return render(
-        request,
-        "cadprofessor.html",
-        {"user_form": user_form, "professor_form": professor_form},
-    )
+class UserCreateView(CreateView):
+    form_class = UserRegisterForm
+    template_name = "registration/signup.html"
+    success_url = reverse_lazy("login")
 
-
-def register_aluno(request):
-    if request.method == "POST":
-        user_form = UserRegisterForm(request.POST)
-        aluno_form = AlunoRegisterForm(request.POST)
-        if user_form.is_valid() and aluno_form.is_valid():
-            user = user_form.save()
-            aluno = aluno_form.save(commit=False)
-            aluno.user = user
-            aluno.save()
-            return redirect("login")
-    else:
-        user_form = UserRegisterForm()
-        aluno_form = AlunoRegisterForm()
-    return render(
-        request, "cadaluno.html", {"user_form": user_form, "aluno_form": aluno_form}
-    )
+    def form_valid(self, form):
+        group = get_object_or_404(Group, name=form.cleaned_data["group"])
+        user = form.save()
+        user.groups.add(group)
+        return super().form_valid(form)
 
 
 @login_required
@@ -86,25 +57,6 @@ def cadastrar_palavra(request):
     else:
         form = PalavraForm()
     return render(request, "cadastrar_palavra.html", {"form": form})
-
-
-def user_login(request):
-    if request.method == "POST":
-        username = request.POST["username"]
-        password = request.POST["password"]
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            return redirect("index")
-        else:
-            messages.error(request, "Usuário ou senha incorretos.")
-    return render(request, "login.html")
-
-
-@login_required
-def user_logout(request):
-    logout(request)
-    return redirect("login")
 
 
 class IndexTemplateView(TemplateView):
@@ -147,17 +99,6 @@ def gerar_relatorio(request):
         jogos = jogos.filter(data_jogada__range=[data_inicio, data_fim])
 
     return render(request, "relatorio.html", {"jogos": jogos})
-
-
-def signup(request):
-    if request.method == "POST":
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect("login")
-    else:
-        form = UserCreationForm()
-    return render(request, "signup.html", {"form": form})
 
 
 @login_required
