@@ -1,9 +1,10 @@
-{% extends "index.html" %}
+{% extends "base.html" %}
+{% load static %}
 {% block content %}
-<h2>Cadastrar Tema</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Salvar</button>
-</form>
+    <h2>Cadastrar Tema</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Cadastrar Tema</button>
+    </form>
 {% endblock %}

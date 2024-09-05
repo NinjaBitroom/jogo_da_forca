@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<h2>Registrar Professor</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ user_form.as_p }}
+    {{ professor_form.as_p }}
+    <button type="submit">Registrar</button>
+</form>
+{% endblock %}
