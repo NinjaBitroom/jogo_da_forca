@@ -1,0 +1,28 @@
+[project]
+name = "Jogo_da_Forca"
+version = "0.1.0"
+description = "Atividade Final de Programação 4"
+authors = [
+    {name = "Gabriel", email = "gabrielbitercourt@gmail.com"},
+    {name = "Gilberto"},
+    {name = "Wagner"},
+]
+dependencies = [
+    "django~=4.2",
+    "mysqlclient~=2.2",
+    "django-environ~=0.11",
+]
+requires-python = "==3.12.*"
+readme = "README.md"
+license = {text = "MIT"}
+
+[tool.pyprojectx]
+main = ["pdm"]
+
+[tool.pyprojectx.aliases]
+manage = "pdm run manage.py"
+start = "@manage runserver"
+migrate = "@manage migrate"
+
+[tool.pdm]
+distribution = false

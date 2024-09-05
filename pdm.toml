@@ -1,0 +1,5 @@
+[strategy]
+save = "compatible"
+
+[venv]
+with_pip = true
