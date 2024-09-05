@@ -5,6 +5,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import get_template
+from django.views.generic import TemplateView
 from xhtml2pdf import pisa
 
 from .forms import (
@@ -106,8 +107,8 @@ def user_logout(request):
     return redirect("login")
 
 
-def index(request):
-    return render(request, "index.html")
+class IndexTemplateView(TemplateView):
+    template_name = "index.html"
 
 
 @login_required
@@ -170,6 +171,6 @@ def jogar(request, tema_id):
 
     return render(
         request,
-        "index.html",
+        "jogo.html",
         {"palavra": palavra.texto if palavra else "Palavra não disponível"},
     )
