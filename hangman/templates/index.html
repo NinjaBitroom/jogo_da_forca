@@ -3,5 +3,13 @@
 	Início
 {% endblock %}
 {% block content %}
-	
+    {% if perms.hangman.add_tema %}
+    	<a href="{% url 'cadastrar_tema' %}" class="btn btn-primary">Adicionar Tema</a>
+        <br>
+    {% endif %} 
+	{% for tema in tema_list %}
+		{{ tema }}
+    {% empty %}
+        Ainda não há temas cadastrados.
+	{% endfor %}
 {% endblock %}

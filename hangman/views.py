@@ -1,15 +1,15 @@
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Group
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import get_template
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, TemplateView
+from django.views.generic import CreateView, ListView
 from xhtml2pdf import pisa
 
 from .forms import (
     PalavraForm,
-    TemaForm,
     UserRegisterForm,
 )
 from .models import Jogo, Palavra, Tema
@@ -27,20 +27,15 @@ class UserCreateView(CreateView):
         return super().form_valid(form)
 
 
-@login_required
-def cadastrar_tema(request):
-    if not hasattr(request.user, "professor"):
-        return HttpResponseForbidden("Você não tem permissão para cadastrar temas.")
-    if request.method == "POST":
-        form = TemaForm(request.POST)
-        if form.is_valid():
-            tema = form.save(commit=False)
-            tema.professor = request.user.professor
-            tema.save()
-            return redirect("index")
-    else:
-        form = TemaForm()
-    return render(request, "cadastrar_tema.html", {"form": form})
+class TemaCreateView(CreateView, PermissionRequiredMixin):
+    model = Tema
+    fields = ["nome"]
+    template_name = "cadastrar_tema.html"
+    success_url = reverse_lazy("index")
+
+    def form_valid(self, form):
+        form.instance.professor = self.request.user
+        return super().form_valid(form)
 
 
 @login_required
@@ -59,8 +54,9 @@ def cadastrar_palavra(request):
     return render(request, "cadastrar_palavra.html", {"form": form})
 
 
-class IndexTemplateView(TemplateView):
+class IndexListView(ListView):
     template_name = "index.html"
+    model = Tema
 
 
 @login_required
@@ -72,11 +68,6 @@ def gerar_pdf(request):
     response = HttpResponse(content_type="application/pdf")
     pisa.CreatePDF(html, dest=response)
     return response
-
-
-def listar_temas(request):
-    temas = Tema.objects.all()
-    return render(request, "listar_temas.html", {"temas": temas})
 
 
 def listar_jogos(request, tema_id):
