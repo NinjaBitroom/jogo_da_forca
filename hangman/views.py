@@ -1,18 +1,26 @@
+import random
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Group
-from django.http import HttpResponse, HttpResponseForbidden
-from django.shortcuts import get_object_or_404, redirect, render
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, render
 from django.template.loader import get_template
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, ListView
+from django.views.generic import CreateView, ListView, UpdateView
 from xhtml2pdf import pisa
 
 from .forms import (
     PalavraForm,
+    TemaForm,
     UserRegisterForm,
 )
 from .models import Jogo, Palavra, Tema
+
+
+class IndexListView(ListView):
+    template_name = "index.html"
+    model = Tema
 
 
 class UserCreateView(CreateView):
@@ -27,36 +35,36 @@ class UserCreateView(CreateView):
         return super().form_valid(form)
 
 
-class TemaCreateView(CreateView, PermissionRequiredMixin):
+class TemaCreateView(PermissionRequiredMixin, CreateView):
     model = Tema
-    fields = ["nome"]
+    form_class = TemaForm
     template_name = "cadastrar_tema.html"
     success_url = reverse_lazy("index")
+    permission_required = "hangman.add_tema"
 
     def form_valid(self, form):
         form.instance.professor = self.request.user
         return super().form_valid(form)
 
 
-@login_required
-def cadastrar_palavra(request):
-    if not hasattr(request.user, "professor"):
-        return HttpResponseForbidden("Você não tem permissão para cadastrar palavras.")
-    if request.method == "POST":
-        form = PalavraForm(request.POST)
-        if form.is_valid():
-            palavra = form.save(commit=False)
-            palavra.professor = request.user.professor
-            palavra.save()
-            return redirect("index")
-    else:
-        form = PalavraForm()
-    return render(request, "cadastrar_palavra.html", {"form": form})
-
-
-class IndexListView(ListView):
-    template_name = "index.html"
+class TemaUpdateView(PermissionRequiredMixin, UpdateView):
     model = Tema
+    form_class = TemaForm
+    template_name = "atualizar_tema.html"
+    success_url = reverse_lazy("index")
+    permission_required = "hangman.change_tema"
+
+
+class PalavraCreateView(PermissionRequiredMixin, CreateView):
+    model = Palavra
+    form_class = PalavraForm
+    template_name = "cadastrar_palavra.html"
+    success_url = reverse_lazy("index")
+    permission_required = "hangman.add_palavra"
+
+    def form_valid(self, form):
+        form.instance.professor = self.request.user
+        return super().form_valid(form)
 
 
 @login_required
@@ -96,8 +104,6 @@ def gerar_relatorio(request):
 def jogar(request, tema_id):
     tema = get_object_or_404(Tema, pk=tema_id)
     palavras = Palavra.objects.filter(tema=tema, professor=request.user.professor)
-
-    import random
 
     palavra = random.choice(palavras) if palavras.exists() else None
 

@@ -1,15 +1,29 @@
 {% extends 'base.html' %}
 {% block titulo %}
-	Início
+    Início
 {% endblock %}
 {% block content %}
     {% if perms.hangman.add_tema %}
-    	<a href="{% url 'cadastrar_tema' %}" class="btn btn-primary">Adicionar Tema</a>
-        <br>
-    {% endif %} 
-	{% for tema in tema_list %}
-		{{ tema }}
+        <a href="{% url 'cadastrar_tema' %}" class="btn btn-secondary">Adicionar Tema</a>
+    {% endif %}
+    {% if perms.hangman.add_palavra %}
+        <a href="{% url 'cadastrar_palavra' %}" class="btn btn-secondary">Adicionar Palavra</a>
+    {% endif %}
+    {% for tema in tema_list %}
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{{ tema.nome }}</h5>
+                <p class="card-text">Por: {{ tema.professor }}</p>
+                <a href="#" class="btn btn-primary">Jogar</a>
+                {% if perms.hangman.change_tema %}
+                    <a href="{% url 'atualizar_tema' tema.pk %}" class="btn btn-secondary">Editar</a>
+                {% endif %}
+                {% if perms.hangman.delete_tema %}
+                    <a href="#" class="btn btn-danger">Deletar</a>
+                {% endif %}
+            </div>
+        </div>
     {% empty %}
         Ainda não há temas cadastrados.
-	{% endfor %}
+    {% endfor %}
 {% endblock %}
