@@ -1,12 +1,12 @@
 import random
 
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Group
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404
 from django.template.loader import get_template
 from django.urls import reverse_lazy
+from django.views import View
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from xhtml2pdf import pisa
 
@@ -78,43 +78,6 @@ class PalavraCreateView(PermissionRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-@login_required
-def gerar_pdf(request):
-    template = get_template("relatorio.html")
-    jogos = Jogo.objects.all()
-    context = {"jogos": jogos}
-    html = template.render(context)
-    response = HttpResponse(content_type="application/pdf")
-    pisa.CreatePDF(html, dest=response)
-    return response
-
-
-class JogosListView(ListView):
-    model = Jogo
-    template_name = "listar_jogos.html"
-    context_object_name = "jogos"
-
-    def get_queryset(self):
-        return super().get_queryset().filter(tema_id=self.kwargs["tema_id"])
-
-
-@login_required
-def gerar_relatorio(request):
-    jogos = Jogo.objects.all()
-
-    tema_id = request.GET.get("tema")
-    data_inicio = request.GET.get("data_inicio")
-    data_fim = request.GET.get("data_fim")
-
-    if tema_id:
-        jogos = jogos.filter(tema_id=tema_id)
-
-    if data_inicio and data_fim:
-        jogos = jogos.filter(data_jogada__range=[data_inicio, data_fim])
-
-    return render(request, "relatorio.html", {"jogos": jogos})
-
-
 class JogoView(TemplateView):
     template_name = "jogo.html"
 
@@ -127,3 +90,50 @@ class JogoView(TemplateView):
             tema=tema,
         )
         return {"palavra": palavra.texto if palavra else "Palavra não disponível"}
+
+
+class JogosListView(ListView):
+    model = Jogo
+    template_name = "listar_jogos.html"
+    context_object_name = "jogos"
+
+    def get_queryset(self):
+        return super().get_queryset().filter(tema_id=self.kwargs["tema_id"])
+
+
+class RelatorioView(TemplateView):
+    template_name = "relatorio.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        jogos = Jogo.objects.all()
+
+        tema_id = self.request.GET.get("tema")
+        data_inicio = self.request.GET.get("data_inicio")
+        data_fim = self.request.GET.get("data_fim")
+
+        if tema_id:
+            jogos = jogos.filter(tema_id=tema_id)
+
+        if data_inicio and data_fim:
+            jogos = jogos.filter(data_jogo__range=[data_inicio, data_fim])
+
+        ctx["jogos"] = jogos
+        ctx["data_inicio"] = data_inicio
+        ctx["data_fim"] = data_fim
+        return ctx
+
+
+class PdfView(View):
+    def get(self, request):
+        template = get_template("relatorio.html")
+        jogos = Jogo.objects.all()
+        context = {
+            "jogos": jogos,
+            "data_inicio": request.GET.get("data_inicio"),
+            "data_fim": request.GET.get("data_fim"),
+        }
+        html = template.render(context)
+        response = HttpResponse(content_type="application/pdf")
+        pisa.CreatePDF(html, dest=response)
+        return response

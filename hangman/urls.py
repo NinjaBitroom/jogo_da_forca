@@ -23,5 +23,6 @@ urlpatterns = [
     path(
         "temas/<int:tema_id>/jogos/", views.JogosListView.as_view(), name="listar_jogos"
     ),
-    path("relatorio/", views.gerar_relatorio, name="gerar_relatorio"),
+    path("relatorio/", views.RelatorioView.as_view(), name="gerar_relatorio"),
+    path("pdf/", views.PdfView.as_view(), name="pdf"),
 ]
