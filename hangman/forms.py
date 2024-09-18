@@ -1,16 +1,31 @@
 from django import forms
-from .models import Tema, Palavra
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
+
+from .models import Palavra, Tema
+
 
 class TemaForm(forms.ModelForm):
     class Meta:
         model = Tema
-        fields = ['nome']
+        fields = ["nome"]
+
 
 class PalavraForm(forms.ModelForm):
     class Meta:
         model = Palavra
-        fields = ['tema', 'palavra', 'dica', 'texto']
+        fields = ["tema", "palavra", "dica", "texto"]
 
-class LoginForm(forms.Form):
-    username = forms.CharField(label='Usuário', max_length=100)
-    password = forms.CharField(label='Senha', widget=forms.PasswordInput)
+
+class UserRegisterForm(UserCreationForm):
+    group = forms.ChoiceField(
+        label="Grupo",
+        choices=(
+            ("professores", "Professor"),
+            ("alunos", "Aluno"),
+        ),
+    )
+
+    class Meta:
+        model = User
+        fields = ["username", "password1", "password2"]

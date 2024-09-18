@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+    <form method="get" action="{% url 'gerar_relatorio' %}">
+        <h1>Gerar relatório</h1>
+        <label for="data_inicio">Data inicial</label>
+        <input type="date" name="data_inicio" id="data_inicio">
+        <label for="data_fim">Data final</label>
+        <input type="date" name="data_fim" id="data_fim">
+        <input type="hidden" name="tema" value="{{ jogos.0.tema.pk }}">
+        <button type="submit">Gerar</button>
+    </form>
+    {% for jogo in jogos %}
+        <p>{{ jogo }}</p>
+    {% endfor %}
+{% endblock %}

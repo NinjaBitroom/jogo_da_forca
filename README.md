@@ -38,9 +38,12 @@ SECRET_KEY=suachavesecreta
 DATABASE_URL=engine://user:password@host:port/name
 ```
 
+Depois execute os seguintes comandos:
+
 ```bash
 ./pw pdm install
 ./pw migrate
+./pw manage setup_groups
 ```
 
 ## Execução

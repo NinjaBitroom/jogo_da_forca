@@ -1,165 +1,139 @@
-from django.http import HttpResponseForbidden
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login, logout
-from django.contrib import messages
-from .forms import TemaForm, PalavraForm
-from .models import Jogo, Tema
+import random
+
+from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib.auth.models import Group
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 from django.template.loader import get_template
+from django.urls import reverse_lazy
+from django.views import View
+from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from xhtml2pdf import pisa
-from .models import Professor, Aluno
-from django.contrib.auth.models import User
-from django.contrib.auth.forms import UserCreationForm
-from django import forms
-from django.shortcuts import render, get_object_or_404
-from .models import Palavra, Tema
 
-class UserRegisterForm(UserCreationForm):
-    class Meta:
-        model = User
-        fields = ['username', 'password1', 'password2']
-
-class ProfessorRegisterForm(forms.ModelForm):
-    class Meta:
-        model = Professor
-        fields = ['nome']
-
-class AlunoRegisterForm(forms.ModelForm):
-    class Meta:
-        model = Aluno
-        fields = ['nome']
-
-def register_professor(request):
-    if request.method == 'POST':
-        user_form = UserRegisterForm(request.POST)
-        professor_form = ProfessorRegisterForm(request.POST)
-        if user_form.is_valid() and professor_form.is_valid():
-            user = user_form.save()
-            professor = professor_form.save(commit=False)
-            professor.user = user
-            professor.save()
-            return redirect('login')
-    else:
-        user_form = UserRegisterForm()
-        professor_form = ProfessorRegisterForm()
-    return render(request, 'cadprofessor.html', {'user_form': user_form, 'professor_form': professor_form})
-
-def register_aluno(request):
-    if request.method == 'POST':
-        user_form = UserRegisterForm(request.POST)
-        aluno_form = AlunoRegisterForm(request.POST)
-        if user_form.is_valid() and aluno_form.is_valid():
-            user = user_form.save()
-            aluno = aluno_form.save(commit=False)
-            aluno.user = user
-            aluno.save()
-            return redirect('login')
-    else:
-        user_form = UserRegisterForm()
-        aluno_form = AlunoRegisterForm()
-    return render(request, 'cadaluno.html', {'user_form': user_form, 'aluno_form': aluno_form})
-
-@login_required
-def cadastrar_tema(request):
-    if not hasattr(request.user, 'professor'):
-        return HttpResponseForbidden("Você não tem permissão para cadastrar temas.")
-    if request.method == 'POST':
-        form = TemaForm(request.POST)
-        if form.is_valid():
-            tema = form.save(commit=False)
-            tema.professor = request.user.professor
-            tema.save()
-            return redirect('index')
-    else:
-        form = TemaForm()
-    return render(request, 'cadastrar_tema.html', {'form': form})
-@login_required
-def cadastrar_palavra(request):
-    if not hasattr(request.user, 'professor'):
-        return HttpResponseForbidden("Você não tem permissão para cadastrar palavras.")
-    if request.method == 'POST':
-        form = PalavraForm(request.POST)
-        if form.is_valid():
-            palavra = form.save(commit=False)
-            palavra.professor = request.user.professor
-            palavra.save()
-            return redirect('index')
-    else:
-        form = PalavraForm()
-    return render(request, 'cadastrar_palavra.html', {'form': form})
-
-def user_login(request):
-    if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            return redirect('index')
-        else:
-            messages.error(request, 'Usuário ou senha incorretos.')
-    return render(request, 'login.html')
-
-@login_required
-def user_logout(request):
-    logout(request)
-    return redirect('login')
-
-def index(request):
-    return render(request, 'index.html')
-
-@login_required
-def gerar_pdf(request):
-    template = get_template('relatorio.html')
-    jogos = Jogo.objects.all()
-    context = {'jogos': jogos}
-    html = template.render(context)
-    response = HttpResponse(content_type='application/pdf')
-    pisa.CreatePDF(html, dest=response)
-    return response
-
-def listar_temas(request):
-    temas = Tema.objects.all()
-    return render(request, 'listar_temas.html', {'temas': temas})
-
-def listar_jogos(request, tema_id):
-    jogos = Jogo.objects.filter(tema_id=tema_id)
-    return render(request, 'listar_jogos.html', {'jogos': jogos})
+from .forms import (
+    PalavraForm,
+    TemaForm,
+    UserRegisterForm,
+)
+from .models import Jogo, Palavra, Tema
 
 
-@login_required
-def gerar_relatorio(request):
-    jogos = Jogo.objects.all()
+class IndexListView(ListView):
+    template_name = "index.html"
+    model = Tema
 
-    tema_id = request.GET.get('tema')
-    data_inicio = request.GET.get('data_inicio')
-    data_fim = request.GET.get('data_fim')
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        palavras = Palavra.objects.filter()
+        qtd_palavras = {}
+        for palavra in palavras:
+            if palavra.tema not in qtd_palavras:
+                qtd_palavras[palavra.tema] = 0
+            qtd_palavras[palavra.tema] += 1
+        context["qtd_palavras"] = qtd_palavras
+        return context
 
-    if tema_id:
-        jogos = jogos.filter(tema_id=tema_id)
 
-    if data_inicio and data_fim:
-        jogos = jogos.filter(data_jogada__range=[data_inicio, data_fim])
+class UserCreateView(CreateView):
+    form_class = UserRegisterForm
+    template_name = "registration/signup.html"
+    success_url = reverse_lazy("login")
 
-    return render(request, 'relatorio.html', {'jogos': jogos})
+    def form_valid(self, form):
+        group = get_object_or_404(Group, name=form.cleaned_data["group"])
+        user = form.save()
+        user.groups.add(group)
+        return super().form_valid(form)
 
-def signup(request):
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('login')
-    else:
-        form = UserCreationForm()
-    return render(request, 'signup.html', {'form': form})
 
-@login_required
-def jogar(request, tema_id):
-    tema = get_object_or_404(Tema, pk=tema_id)
-    palavras = Palavra.objects.filter(tema=tema, professor=request.user.professor)
+class TemaCreateView(PermissionRequiredMixin, CreateView):
+    model = Tema
+    form_class = TemaForm
+    template_name = "cadastrar_tema.html"
+    success_url = reverse_lazy("index")
+    permission_required = "hangman.add_tema"
 
-    import random
-    palavra = random.choice(palavras) if palavras.exists() else None
+    def form_valid(self, form):
+        form.instance.professor = self.request.user
+        return super().form_valid(form)
 
-    return render(request, 'index.html', {'palavra': palavra.texto if palavra else "Palavra não disponível"})
+
+class TemaUpdateView(PermissionRequiredMixin, UpdateView):
+    model = Tema
+    form_class = TemaForm
+    template_name = "atualizar_tema.html"
+    success_url = reverse_lazy("index")
+    permission_required = "hangman.change_tema"
+
+
+class PalavraCreateView(PermissionRequiredMixin, CreateView):
+    model = Palavra
+    form_class = PalavraForm
+    template_name = "cadastrar_palavra.html"
+    success_url = reverse_lazy("index")
+    permission_required = "hangman.add_palavra"
+
+    def form_valid(self, form):
+        form.instance.professor = self.request.user
+        return super().form_valid(form)
+
+
+class JogoView(TemplateView):
+    template_name = "jogo.html"
+
+    def get_context_data(self, **kwargs):
+        tema = get_object_or_404(Tema, pk=self.kwargs["tema_id"])
+        palavras = Palavra.objects.filter(tema=tema)
+        palavra = random.choice(palavras) if palavras.exists() else None
+        Jogo.objects.create(
+            user=self.request.user if not self.request.user.is_anonymous else None,
+            tema=tema,
+        )
+        return {"palavra": palavra.texto if palavra else "Palavra não disponível"}
+
+
+class JogosListView(ListView):
+    model = Jogo
+    template_name = "listar_jogos.html"
+    context_object_name = "jogos"
+
+    def get_queryset(self):
+        return super().get_queryset().filter(tema_id=self.kwargs["tema_id"])
+
+
+class RelatorioView(TemplateView):
+    template_name = "relatorio.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        jogos = Jogo.objects.all()
+
+        tema_id = self.request.GET.get("tema")
+        data_inicio = self.request.GET.get("data_inicio")
+        data_fim = self.request.GET.get("data_fim")
+
+        if tema_id:
+            jogos = jogos.filter(tema_id=tema_id)
+
+        if data_inicio and data_fim:
+            jogos = jogos.filter(data_jogo__range=[data_inicio, data_fim])
+
+        ctx["jogos"] = jogos
+        ctx["data_inicio"] = data_inicio
+        ctx["data_fim"] = data_fim
+        return ctx
+
+
+class PdfView(View):
+    def get(self, request):
+        template = get_template("relatorio.html")
+        jogos = Jogo.objects.all()
+        context = {
+            "jogos": jogos,
+            "data_inicio": request.GET.get("data_inicio"),
+            "data_fim": request.GET.get("data_fim"),
+        }
+        html = template.render(context)
+        response = HttpResponse(content_type="application/pdf")
+        pisa.CreatePDF(html, dest=response)
+        return response

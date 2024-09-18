@@ -1,183 +1,37 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>{% block titulo %}{% endblock %} Jogo da Forca</title>
-    <link href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" rel="stylesheet"/>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f4f4f9;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .container {
-            text-align: center;
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            width: 90%;
-            max-width: 600px;
-        }
-        h1 {
-            margin: 0;
-            color: #333;
-        }
-
-        canvas {
-            background-color: #f4f4f9;
-            margin-bottom: 20px;
-        }
-        .palavra-secreta {
-            font-size: 2rem;
-            letter-spacing: 10px;
-            margin-bottom: 20px;
-        }
-        .letras-escolhidas {
-            margin-bottom: 20px;
-        }
-        .letras-escolhidas span {
-            margin: 5px;
-            font-size: 1.2rem;
-            display: inline-block;
-            color: #007bff;
-        }
-        .teclado {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 10px;
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        .teclado button {
-            padding: 10px;
-            font-size: 1rem;
-            cursor: pointer;
-            border: none;
-            background-color: #007bff;
-            color: white;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
-        }
-        .teclado button:hover {
-            background-color: #0056b3;
-        }
-        .teclado button:disabled {
-            background-color: #aaa;
-            cursor: not-allowed;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <nav>
-            <ul>
-                <li><a href="{% url 'index' %}">Início</a></li>
-                {% if user.is_authenticated %}
-                    <li><a href="{% url 'logout' %}">Sair</a></li>
-                {% else %}
-                    <li><a href="{% url 'login' %}">Entrar</a></li>
+{% extends 'base.html' %}
+{% block titulo %}
+    Início
+{% endblock %}
+{% block content %}
+    {% if perms.hangman.add_tema %}
+        <a href="{% url 'cadastrar_tema' %}" class="btn btn-secondary">Adicionar Tema</a>
+    {% endif %}
+    {% if perms.hangman.add_palavra %}
+        <a href="{% url 'cadastrar_palavra' %}" class="btn btn-secondary">Adicionar Palavra</a>
+    {% endif %}
+    {% for tema in tema_list %}
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">
+                    {{ tema.nome }}
+                    {% for qtd_tema, qtd_palavras in qtd_palavras.items %}
+                        {% if tema == qtd_tema %}
+                            (palavras disponíveis: {{ qtd_palavras }})
+                        {% endif %}
+                    {% endfor %}
+                </h5>
+                <p class="card-text">Por: {{ tema.professor }}</p>
+                <a href="{% url 'jogo' tema_id=tema.pk %}" class="btn btn-primary">Jogar</a>
+                {% if perms.hangman.change_tema %}
+                    <a href="{% url 'atualizar_tema' tema.pk %}" class="btn btn-warning">Editar</a>
                 {% endif %}
-            </ul>
-        </nav>
-        <h1>Jogo da Forca</h1>
-        <canvas id="forcaCanvas" width="200" height="250"></canvas>
-        <div class="palavra-secreta" id="palavraSecreta">
-            {% if palavra %}
-                {% for letra in palavra %}
-                    {% if letra == " " %}
-                        &nbsp;
-                    {% else %}
-                        _
-                    {% endif %}
-                {% endfor %}
-            {% else %}
-                Nenhuma palavra disponível
-            {% endif %}
+                {% if perms.hangman.delete_tema %}
+                    <a href="#" class="btn btn-danger">Deletar</a>
+                {% endif %}
+                <a href="{% url 'listar_jogos' tema_id=tema.pk %}" class="btn btn-info">Listar Jogos</a>
+            </div>
         </div>
-
-        <div class="letras-escolhidas">
-            <strong>Letras escolhidas:</strong> <span id="letrasEscolhidas">Nenhuma</span>
-        </div>
-        <div class="teclado" id="teclado"></div>
-    </div>
-
-    <script>
-        const palavra = "{{ palavra|default_if_none:'' }}".toUpperCase();
-        let letrasEscolhidas = [];
-        let erros = 0;
-
-        function desenharForca(erros) {
-            const canvas = document.getElementById('forcaCanvas');
-            const ctx = canvas.getContext('2d');
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Base da forca
-            ctx.fillStyle = '#000';
-            ctx.fillRect(10, 230, 180, 5);
-            ctx.fillRect(50, 10, 5, 220);
-            ctx.fillRect(50, 10, 100, 5);
-            ctx.fillRect(150, 10, 5, 30);
-
-            // Desenho do boneco
-            if (erros > 0) ctx.arc(152, 50, 20, 0, Math.PI * 2); // cabeça
-            if (erros > 1) ctx.fillRect(150, 70, 5, 50); // tronco
-            if (erros > 2) ctx.fillRect(130, 100, 20, 5); // braço esquerdo
-            if (erros > 3) ctx.fillRect(160, 100, 20, 5); // braço direito
-            if (erros > 4) ctx.fillRect(130, 130, 20, 5); // perna esquerda
-            if (erros > 5) ctx.fillRect(160, 130, 20, 5); // perna direita
-        }
-
-        function gerarTeclado() {
-            const alfabeto = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-            const tecladoDiv = document.getElementById('teclado');
-            alfabeto.split('').forEach(letra => {
-                const botao = document.createElement('button');
-                botao.innerText = letra;
-                botao.onclick = () => selecionarLetra(letra);
-                tecladoDiv.appendChild(botao);
-            });
-        }
-
-        function selecionarLetra(letra) {
-            letrasEscolhidas.push(letra);
-            document.getElementById('letrasEscolhidas').innerText = letrasEscolhidas.join(', ');
-
-            if (palavra.includes(letra)) {
-                // Atualizar a palavra secreta se a letra estiver correta
-                const palavraSecretaElement = document.getElementById('palavraSecreta');
-                let novaPalavraSecreta = '';
-                for (let i = 0; i < palavra.length; i++) {
-                    if (letrasEscolhidas.includes(palavra[i])) {
-                        novaPalavraSecreta += palavra[i] + ' ';
-                    } else {
-                        novaPalavraSecreta += '_ ';
-                    }
-                }
-                palavraSecretaElement.innerText = novaPalavraSecreta.trim();
-            } else {
-                erros++;
-                desenharForca(erros);
-
-                if (erros >= 7) {
-                    alert('Você perdeu!');
-                    document.querySelectorAll('button').forEach(btn => btn.disabled = true);
-                }
-            }
-        }
-
-        // Inicializar o jogo
-        window.onload = () => {
-            gerarTeclado();
-            desenharForca(0);
-        }
-    </script>
-</body>
-</html>
+    {% empty %}
+        Ainda não há temas cadastrados.
+    {% endfor %}
+{% endblock %}

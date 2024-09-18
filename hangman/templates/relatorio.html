@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Relatório de Atividades</title>
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,43 +13,53 @@
             margin: 0;
             padding: 20px;
         }
+
         h1 {
             text-align: center;
             color: #333;
         }
+
         form {
             margin-bottom: 20px;
             text-align: center;
         }
+
         label {
             font-weight: bold;
             margin-right: 10px;
         }
+
         select, input {
             padding: 5px;
             margin-right: 10px;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             background-color: white;
             margin-top: 20px;
         }
+
         th, td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: center;
         }
+
         th {
             background-color: #4CAF50;
             color: white;
         }
+
         tr:nth-child(even) {
             background-color: #f2f2f2;
         }
+
         tr:hover {
             background-color: #ddd;
         }
+
         .btn-pdf {
             background-color: #4CAF50;
             color: white;
@@ -62,63 +72,50 @@
     </style>
 </head>
 <body>
-    <h1>Relatório de Atividades dos Alunos</h1>
+<h1>Relatório de Atividades dos Alunos</h1>
 
-    <!-- Filtro de Relatórios -->
-    <form method="get" action="{% url 'gerar_relatorio' %}">
-        <label for="tema">Tema:</label>
-        <select name="tema" id="tema">
-            <option value="">Selecione um tema</option>
-            {% for tema in temas %}
-                <option value="{{ tema.id }}">{{ tema.nome }}</option>
-            {% endfor %}
-        </select>
+<p id="data_inicio">De:</p>
+<p type="date" class="data_inicio" id="data_inicio">{{ data_inicio }}</p>
 
-        <label for="data_inicio">De:</label>
-        <input type="date" name="data_inicio" id="data_inicio" value="{{ data_inicio }}">
+<p id="data_fim">Até:</p>
+<p type="date" class="data_fim" id="data_fim">{{ data_fim }}</p>
 
-        <label for="data_fim">Até:</label>
-        <input type="date" name="data_fim" id="data_fim" value="{{ data_fim }}">
 
-        <button type="submit">Filtrar</button>
-    </form>
+<!-- Link para gerar PDF -->
+<div style="text-align: center;">
+    <a href="{% url 'pdf' %}?tema={{ tema.id }}&data_inicio={{ data_inicio }}&data_fim={{ data_fim }}"
+       class="btn-pdf">
+        Gerar PDF
+    </a>
+</div>
 
-    <!-- Link para gerar PDF -->
-    <div style="text-align: center;">
-        <a href="{% url 'gerar_relatorio' %}?tema={{ tema.id }}&data_inicio={{ data_inicio }}&data_fim={{ data_fim }}" class="btn-pdf">
-            Gerar PDF
-        </a>
-    </div>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Aluno</th>
-                <th>Tema</th>
-                <th>Data</th>
-                <th>Palavras Jogadas</th>
-                <th>Acertos</th>
-                <th>Erros</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% if atividades %}
-                {% for atividade in atividades %}
-                    <tr>
-                        <td>{{ atividade.aluno }}</td>
-                        <td>{{ atividade.tema.nome }}</td>
-                        <td>{{ atividade.data|date:"d/m/Y" }}</td>
-                        <td>{{ atividade.palavras_jogadas }}</td>
-                        <td>{{ atividade.acertos }}</td>
-                        <td>{{ atividade.erros }}</td>
-                    </tr>
-                {% endfor %}
-            {% else %}
-                <tr>
-                    <td colspan="6">Nenhum registro encontrado.</td>
-                </tr>
-            {% endif %}
-        </tbody>
-    </table>
+<table>
+    <thead>
+    <tr>
+        <th>Aluno</th>
+        <th>Tema</th>
+        <th>Data</th>
+        <th>Palavras Jogadas</th>
+        <th>Acertos</th>
+        <th>Erros</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for jogo in jogos %}
+        <tr>
+            <td>{{ jogo.user }}</td>
+            <td>{{ jogo.tema.nome }}</td>
+            <td>{{ jogo.data_jogo|date:"d/m/Y" }}</td>
+            <td>{{ jogo.palavras_jogadas }}</td>
+            <td>{{ jogo.acertos }}</td>
+            <td>{{ jogo.erros }}</td>
+        </tr>
+    {% empty %}
+        <tr>
+            <td colspan="6">Nenhum registro encontrado.</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
 </body>
 </html>
