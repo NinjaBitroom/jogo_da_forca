@@ -22,9 +22,9 @@ class Palavra(models.Model):
 
 
 class Jogo(models.Model):
-    aluno = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     tema = models.ForeignKey(Tema, on_delete=models.CASCADE)
     data_jogo = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.aluno.first_name} - {self.tema.nome} - {self.data_jogo}"
+        return f"{self.user} - {self.tema.nome} - {self.data_jogo}"

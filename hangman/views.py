@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.template.loader import get_template
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, ListView, UpdateView
+from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from xhtml2pdf import pisa
 
 from .forms import (
@@ -21,6 +21,17 @@ from .models import Jogo, Palavra, Tema
 class IndexListView(ListView):
     template_name = "index.html"
     model = Tema
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        palavras = Palavra.objects.filter()
+        qtd_palavras = {}
+        for palavra in palavras:
+            if palavra.tema not in qtd_palavras:
+                qtd_palavras[palavra.tema] = 0
+            qtd_palavras[palavra.tema] += 1
+        context["qtd_palavras"] = qtd_palavras
+        return context
 
 
 class UserCreateView(CreateView):
@@ -78,9 +89,13 @@ def gerar_pdf(request):
     return response
 
 
-def listar_jogos(request, tema_id):
-    jogos = Jogo.objects.filter(tema_id=tema_id)
-    return render(request, "listar_jogos.html", {"jogos": jogos})
+class JogosListView(ListView):
+    model = Jogo
+    template_name = "listar_jogos.html"
+    context_object_name = "jogos"
+
+    def get_queryset(self):
+        return super().get_queryset().filter(tema_id=self.kwargs["tema_id"])
 
 
 @login_required
@@ -100,15 +115,15 @@ def gerar_relatorio(request):
     return render(request, "relatorio.html", {"jogos": jogos})
 
 
-@login_required
-def jogar(request, tema_id):
-    tema = get_object_or_404(Tema, pk=tema_id)
-    palavras = Palavra.objects.filter(tema=tema, professor=request.user.professor)
+class JogoView(TemplateView):
+    template_name = "jogo.html"
 
-    palavra = random.choice(palavras) if palavras.exists() else None
-
-    return render(
-        request,
-        "jogo.html",
-        {"palavra": palavra.texto if palavra else "Palavra não disponível"},
-    )
+    def get_context_data(self, **kwargs):
+        tema = get_object_or_404(Tema, pk=self.kwargs["tema_id"])
+        palavras = Palavra.objects.filter(tema=tema)
+        palavra = random.choice(palavras) if palavras.exists() else None
+        Jogo.objects.create(
+            user=self.request.user if not self.request.user.is_anonymous else None,
+            tema=tema,
+        )
+        return {"palavra": palavra.texto if palavra else "Palavra não disponível"}

@@ -19,6 +19,9 @@ urlpatterns = [
         views.PalavraCreateView.as_view(),
         name="cadastrar_palavra",
     ),
-    path("temas/<int:tema_id>/jogos/", views.listar_jogos, name="listar_jogos"),
+    path("jogo/<int:tema_id>/", views.JogoView.as_view(), name="jogo"),
+    path(
+        "temas/<int:tema_id>/jogos/", views.JogosListView.as_view(), name="listar_jogos"
+    ),
     path("relatorio/", views.gerar_relatorio, name="gerar_relatorio"),
 ]

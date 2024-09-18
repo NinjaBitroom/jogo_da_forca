@@ -3,9 +3,9 @@ name = "Jogo_da_Forca"
 version = "0.1.0"
 description = "Atividade Final de Programação 4"
 authors = [
-    {name = "Gabriel", email = "gabrielbitercourt@gmail.com"},
-    {name = "Gilberto"},
-    {name = "Wagner"},
+    { name = "Gabriel", email = "gabrielbitercourt@gmail.com" },
+    { name = "Gilberto" },
+    { name = "Wagner" },
 ]
 dependencies = [
     "django~=4.2",
@@ -16,7 +16,7 @@ dependencies = [
 ]
 requires-python = "==3.12.*"
 readme = "README.md"
-license = {text = "MIT"}
+license = { text = "MIT" }
 
 [tool.pyprojectx]
 main = ["pdm"]
@@ -24,6 +24,7 @@ main = ["pdm"]
 [tool.pyprojectx.aliases]
 manage = "pdm run manage.py"
 start = "@manage runserver"
+makemigrations = "@manage makemigrations"
 migrate = "@manage migrate"
 export = "pdm export -o requirements.txt --no-hashes"
 
