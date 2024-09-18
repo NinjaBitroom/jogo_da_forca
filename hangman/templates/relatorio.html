@@ -1,94 +1,14 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relatório de Atividades</title>
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 20px;
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        form {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        label {
-            font-weight: bold;
-            margin-right: 10px;
-        }
-        select, input {
-            padding: 5px;
-            margin-right: 10px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: white;
-            margin-top: 20px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: center;
-        }
-        th {
-            background-color: #4CAF50;
-            color: white;
-        }
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-        tr:hover {
-            background-color: #ddd;
-        }
-        .btn-pdf {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 15px;
-            text-decoration: none;
-            border-radius: 5px;
-            display: inline-block;
-            margin-bottom: 20px;
-        }
-    </style>
+    <title>Relatório de Atividades dos Alunos</title>  
+    <div style="text-align: center; margin-top: 20px;">
+    <a href="{% url 'gerar_pdf' %}" class="btn-pdf">Gerar PDF</a>
+</div>
 </head>
 <body>
     <h1>Relatório de Atividades dos Alunos</h1>
-
-    <!-- Filtro de Relatórios -->
-    <form method="get" action="{% url 'gerar_relatorio' %}">
-        <label for="tema">Tema:</label>
-        <select name="tema" id="tema">
-            <option value="">Selecione um tema</option>
-            {% for tema in temas %}
-                <option value="{{ tema.id }}">{{ tema.nome }}</option>
-            {% endfor %}
-        </select>
-
-        <label for="data_inicio">De:</label>
-        <input type="date" name="data_inicio" id="data_inicio" value="{{ data_inicio }}">
-
-        <label for="data_fim">Até:</label>
-        <input type="date" name="data_fim" id="data_fim" value="{{ data_fim }}">
-
-        <button type="submit">Filtrar</button>
-    </form>
-
-    <!-- Link para gerar PDF -->
-    <div style="text-align: center;">
-        <a href="{% url 'gerar_relatorio' %}?tema={{ tema.id }}&data_inicio={{ data_inicio }}&data_fim={{ data_fim }}" class="btn-pdf">
-            Gerar PDF
-        </a>
-    </div>
 
     <table>
         <thead>
@@ -102,23 +22,20 @@
             </tr>
         </thead>
         <tbody>
-            {% if atividades %}
-                {% for atividade in atividades %}
-                    <tr>
-                        <td>{{ atividade.aluno }}</td>
-                        <td>{{ atividade.tema.nome }}</td>
-                        <td>{{ atividade.data|date:"d/m/Y" }}</td>
-                        <td>{{ atividade.palavras_jogadas }}</td>
-                        <td>{{ atividade.acertos }}</td>
-                        <td>{{ atividade.erros }}</td>
-                    </tr>
-                {% endfor %}
-            {% else %}
+            {% for jogo in jogos %}
                 <tr>
-                    <td colspan="6">Nenhum registro encontrado.</td>
+                    <td>{{ jogo.aluno.nome }}</td>
+                    <td>{{ jogo.tema.nome }}</td>
+                    <td>{{ jogo.data_jogo|date:"d/m/Y" }}</td>
+                    <td>{{ jogo.palavras_jogadas }}</td>
+                    <td>{{ jogo.acertos }}</td>
+                    <td>{{ jogo.erros }}</td>
                 </tr>
-            {% endif %}
+            {% endfor %}
         </tbody>
+    
     </table>
+
 </body>
+
 </html>

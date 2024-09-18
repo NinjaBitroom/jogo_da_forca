@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Escolha um Professor</h2>
+<ul>
+    {% for professor in professores %}
+    <li><a href="{% url 'listar_temas_por_professor' professor.id %}">{{ professor.nome }}</a></li>
+    {% endfor %}
+</ul>
+{% endblock %}
