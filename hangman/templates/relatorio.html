@@ -9,50 +9,51 @@
     <link rel="stylesheet" href="{% static 'css/relatorio.css' %}">
 </head>
 <body>
-<h1>Relatório de Atividades dos Alunos</h1>
+<main>
+    <h1><a href="{% url 'index' %}">Relatório de Atividades dos Alunos</a></h1>
 
-<p id="data_inicio">De:</p>
-<p type="date" class="data_inicio" id="data_inicio">{{ data_inicio }}</p>
+    <p id="data_inicio">De:</p>
+    <p type="date" class="data_inicio" id="data_inicio">{{ data_inicio }}</p>
 
-<p id="data_fim">Até:</p>
-<p type="date" class="data_fim" id="data_fim">{{ data_fim }}</p>
+    <p id="data_fim">Até:</p>
+    <p type="date" class="data_fim" id="data_fim">{{ data_fim }}</p>
 
+    <!-- Link para gerar PDF -->
+    <div style="text-align: center;">
+        <a href="{% url 'pdf' %}?tema={{ tema.id }}&data_inicio={{ data_inicio }}&data_fim={{ data_fim }}"
+           class="btn-pdf">
+            Gerar PDF
+        </a>
+    </div>
 
-<!-- Link para gerar PDF -->
-<div style="text-align: center;">
-    <a href="{% url 'pdf' %}?tema={{ tema.id }}&data_inicio={{ data_inicio }}&data_fim={{ data_fim }}"
-       class="btn-pdf">
-        Gerar PDF
-    </a>
-</div>
-
-<table>
-    <thead>
-    <tr>
-        <th>Aluno</th>
-        <th>Tema</th>
-        <th>Data</th>
-        <th>Palavras Jogadas</th>
-        <th>Acertos</th>
-        <th>Erros</th>
-    </tr>
-    </thead>
-    <tbody>
-    {% for jogo in jogos %}
+    <table>
+        <thead>
         <tr>
-            <td>{{ jogo.user }}</td>
-            <td>{{ jogo.tema.nome }}</td>
-            <td>{{ jogo.data_jogo|date:"d/m/Y" }}</td>
-            <td>{{ jogo.palavras_jogadas }}</td>
-            <td>{{ jogo.acertos }}</td>
-            <td>{{ jogo.erros }}</td>
+            <th>Aluno</th>
+            <th>Tema</th>
+            <th>Data</th>
+            <th>Palavras Jogadas</th>
+            <th>Acertos</th>
+            <th>Erros</th>
         </tr>
-    {% empty %}
-        <tr>
-            <td colspan="6">Nenhum registro encontrado.</td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+        {% for jogo in jogos %}
+            <tr>
+                <td>{{ jogo.user }}</td>
+                <td>{{ jogo.tema.nome }}</td>
+                <td>{{ jogo.data_jogo|date:"d/m/Y" }}</td>
+                <td>{{ jogo.palavras_jogadas }}</td>
+                <td>{{ jogo.acertos }}</td>
+                <td>{{ jogo.erros }}</td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="6">Nenhum registro encontrado.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</main>
 </body>
 </html>
