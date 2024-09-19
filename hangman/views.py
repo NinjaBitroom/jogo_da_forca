@@ -121,6 +121,7 @@ class RelatorioView(PermissionRequiredMixin, TemplateView):
             jogos = jogos.filter(data_jogo__range=[data_inicio, data_fim])
 
         ctx["jogos"] = jogos
+        ctx["tema_id"] = tema_id
         ctx["data_inicio"] = data_inicio
         ctx["data_fim"] = data_fim
         return ctx
@@ -132,11 +133,19 @@ class PdfView(PermissionRequiredMixin, View):
     def get(self, request):
         template = get_template("relatorio.html")
         jogos = Jogo.objects.all()
+
+        tema = self.request.GET.get("tema")
+        data_inicio = self.request.GET.get("data_inicio")
+        data_fim = self.request.GET.get("data_fim")
+
         context = {
-            "jogos": jogos,
-            "data_inicio": request.GET.get("data_inicio"),
-            "data_fim": request.GET.get("data_fim"),
+            "jogos": jogos.filter(
+                tema_id=tema, data_jogo__range=[data_inicio, data_fim]
+            ),
+            "data_inicio": data_inicio,
+            "data_fim": data_fim,
         }
+
         html = template.render(context)
         response = HttpResponse(content_type="application/pdf")
         response["Content-Disposition"] = 'attachment; filename="relatorio.pdf"'
