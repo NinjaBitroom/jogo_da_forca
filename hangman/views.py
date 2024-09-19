@@ -2,7 +2,7 @@ import random
 
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Group
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import get_template
 from django.urls import reverse_lazy
@@ -38,19 +38,6 @@ class UserCreateView(CreateView):
     form_class = UserRegisterForm
     template_name = "registration/signup.html"
     success_url = reverse_lazy("login")
-from django.http import HttpResponse, JsonResponse
-from django.template.loader import get_template
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth import authenticate, login, logout
-from django.contrib import messages
-from xhtml2pdf import pisa
-from .models import Professor, Tema, Palavra, Jogo, Aluno
-from .forms import TemaForm, PalavraForm
-from django.contrib.auth.models import User
-from django.contrib.auth.forms import UserCreationForm
-from django import forms
-import random
 
     def form_valid(self, form):
         group = get_object_or_404(Group, name=form.cleaned_data["group"])
@@ -148,24 +135,21 @@ class PdfView(View):
         }
         html = template.render(context)
         response = HttpResponse(content_type="application/pdf")
+        response["Content-Disposition"] = 'attachment; filename="relatorio.pdf"'
         pisa.CreatePDF(html, dest=response)
+
+        # Gerar o PDF usando xhtml2pdf
+        pisa_status = pisa.CreatePDF(html, dest=response)
+
+        # Verificar se houve erros ao gerar o PDF
+        if pisa_status.err:
+            return HttpResponse("Erro ao gerar o PDF", status=500)
+
         return response
-    # Preparar a resposta do PDF
-    response = HttpResponse(content_type="application/pdf")
-    response["Content-Disposition"] = 'attachment; filename="relatorio.pdf"'
-
-    # Gerar o PDF usando xhtml2pdf
-    pisa_status = pisa.CreatePDF(html, dest=response)
-
-    # Verificar se houve erros ao gerar o PDF
-    if pisa_status.err:
-        return HttpResponse("Erro ao gerar o PDF", status=500)
-
-    return response
 
 
-# Função para selecionar temas por professor
-def temas_por_professor(request, professor_id):
-    temas = Tema.objects.filter(professor_id=professor_id)
-    temas_data = [{"id": tema.id, "nome": tema.nome} for tema in temas]
-    return JsonResponse({"temas": temas_data})
+class TemasPorProfessorView(View):
+    def get(self, request):
+        temas = Tema.objects.filter(professor_id=self.kwargs["professor_id"])
+        temas_data = [{"id": tema.id, "nome": tema.nome} for tema in temas]
+        return JsonResponse({"temas": temas_data})
