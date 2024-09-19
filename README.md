@@ -1,7 +1,7 @@
 # Jogo_da_Forca
 
-[ninjabitroom.pythonanywhere.com/](ninjabitroom.pythonanywhere.com/)
-[https://github.com/NinjaBitroom/jogo_da_forca](https://github.com/NinjaBitroom/jogo_da_forca)
+- [ninjabitroom.pythonanywhere.com/](ninjabitroom.pythonanywhere.com/)
+- [https://github.com/NinjaBitroom/jogo_da_forca](https://github.com/NinjaBitroom/jogo_da_forca)
 
 ## Grupo
 
