@@ -92,17 +92,19 @@ class JogoView(TemplateView):
         return {"palavra": palavra.texto if palavra else "Palavra não disponível"}
 
 
-class JogosListView(ListView):
+class JogosListView(PermissionRequiredMixin, ListView):
     model = Jogo
     template_name = "listar_jogos.html"
     context_object_name = "jogos"
+    permission_required = "hangman.view_jogo"
 
     def get_queryset(self):
         return super().get_queryset().filter(tema_id=self.kwargs["tema_id"])
 
 
-class RelatorioView(TemplateView):
+class RelatorioView(PermissionRequiredMixin, TemplateView):
     template_name = "relatorio.html"
+    permission_required = "hangman.view_jogo"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -124,7 +126,9 @@ class RelatorioView(TemplateView):
         return ctx
 
 
-class PdfView(View):
+class PdfView(PermissionRequiredMixin, View):
+    permission_required = "hangman.view_jogo"
+
     def get(self, request):
         template = get_template("relatorio.html")
         jogos = Jogo.objects.all()

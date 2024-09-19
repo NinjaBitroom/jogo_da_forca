@@ -28,7 +28,9 @@
                 {% if perms.hangman.delete_tema %}
                     <a href="#" class="btn btn-danger" hidden>Deletar</a>
                 {% endif %}
-                <a href="{% url 'listar_jogos' tema_id=tema.pk %}" class="btn btn-info">Listar Jogos</a>
+                {% if perms.hangman.view_jogo %}
+                    <a href="{% url 'listar_jogos' tema_id=tema.pk %}" class="btn btn-info">Listar Jogos</a>
+                {% endif %}
             </div>
         </div>
     {% empty %}
