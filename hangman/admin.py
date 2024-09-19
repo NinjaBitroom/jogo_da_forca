@@ -1,3 +1,7 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import Jogo, Palavra, Tema
+
+admin.site.register(Tema)
+admin.site.register(Palavra)
+admin.site.register(Jogo)

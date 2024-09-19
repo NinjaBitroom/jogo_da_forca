@@ -1,32 +1,66 @@
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f9;
     margin: 0;
     padding: 0;
-    background-color: #d82323;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
 }
-
-header {
-    background-color: #333;
-    color: white;
-    padding: 10px 0;
+.container {
     text-align: center;
-}
-
-nav ul {
-    list-style: none;
-    padding: 0;
-}
-
-nav ul li {
-    display: inline;
-    margin-right: 10px;
-}
-
-nav ul li a {
-    color: white;
-    text-decoration: none;
-}
-
-.content {
+    background-color: white;
     padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 600px;
+}
+h1 {
+    margin: 0;
+    color: #333;
+}
+
+canvas {
+    background-color: #ffffff;
+    margin-bottom: 20px;
+}
+.palavra-secreta {
+    font-size: 5rem;
+    letter-spacing: 15px;
+    margin-bottom: 20px;
+}
+.letras-escolhidas {
+    margin-bottom: 20px;
+}
+.letras-escolhidas span {
+    margin: 5px;
+    font-size: 1.2rem;
+    display: inline-block;
+    color: #007bff;
+}
+.teclado {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    max-width: 400px;
+    margin: 0 auto;
+}
+.teclado button {
+    padding: 10px;
+    font-size: 1rem;
+    cursor: pointer;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+.teclado button:hover {
+    background-color: #0056b3;
+}
+.teclado button:disabled {
+    background-color: #aaa;
+    cursor: not-allowed;
 }

@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Temas de {{ professor.nome }}</h2>
+<ul>
+    {% for tema in temas %}
+    <li><a href="{% url 'listar_temas_por_professor' tema.id %}">{{ tema.nome }}</a></li>
+    {% endfor %}
+</ul>
+{% endblock %}

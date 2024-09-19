@@ -2,7 +2,7 @@ import random
 
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Group
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import get_template
 from django.urls import reverse_lazy
@@ -135,5 +135,21 @@ class PdfView(View):
         }
         html = template.render(context)
         response = HttpResponse(content_type="application/pdf")
+        response["Content-Disposition"] = 'attachment; filename="relatorio.pdf"'
         pisa.CreatePDF(html, dest=response)
+
+        # Gerar o PDF usando xhtml2pdf
+        pisa_status = pisa.CreatePDF(html, dest=response)
+
+        # Verificar se houve erros ao gerar o PDF
+        if pisa_status.err:
+            return HttpResponse("Erro ao gerar o PDF", status=500)
+
         return response
+
+
+class TemasPorProfessorView(View):
+    def get(self, request):
+        temas = Tema.objects.filter(professor_id=self.kwargs["professor_id"])
+        temas_data = [{"id": tema.id, "nome": tema.nome} for tema in temas]
+        return JsonResponse({"temas": temas_data})

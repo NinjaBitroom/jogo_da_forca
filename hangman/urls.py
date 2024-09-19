@@ -25,4 +25,9 @@ urlpatterns = [
     ),
     path("relatorio/", views.RelatorioView.as_view(), name="gerar_relatorio"),
     path("pdf/", views.PdfView.as_view(), name="pdf"),
+    path(
+        "temas_por_professor/<int:professor_id>/",
+        views.TemasPorProfessorView.as_view(),
+        name="temas_por_professor",
+    ),
 ]
