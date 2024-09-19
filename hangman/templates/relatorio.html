@@ -3,6 +3,10 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <title>Relatório de Atividades dos Alunos</title>
+    <div style="text-align: center; margin-top: 20px;">
+    <a href="{% url 'gerar_pdf' %}" class="btn-pdf">Gerar PDF</a>
+</div>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Relatório de Atividades</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
@@ -72,7 +76,7 @@
     </style>
 </head>
 <body>
-<h1>Relatório de Atividades dos Alunos</h1>
+    <h1>Relatório de Atividades dos Alunos</h1>
 
 <p id="data_inicio">De:</p>
 <p type="date" class="data_inicio" id="data_inicio">{{ data_inicio }}</p>
