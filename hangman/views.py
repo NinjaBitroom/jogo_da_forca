@@ -82,14 +82,16 @@ class JogoView(TemplateView):
     template_name = "jogo.html"
 
     def get_context_data(self, **kwargs):
-        tema = get_object_or_404(Tema, pk=self.kwargs["tema_id"])
+        ctx = super().get_context_data(**kwargs)
+        tema = get_object_or_404(Tema, pk=kwargs["tema_id"])
         palavras = Palavra.objects.filter(tema=tema)
         palavra = random.choice(palavras) if palavras.exists() else None
         Jogo.objects.create(
             user=self.request.user if not self.request.user.is_anonymous else None,
             tema=tema,
         )
-        return {"palavra": palavra.texto if palavra else "Palavra não disponível"}
+        ctx["palavra"] = palavra.texto if palavra else "Palavra não disponível"
+        return ctx
 
 
 class JogosListView(PermissionRequiredMixin, ListView):

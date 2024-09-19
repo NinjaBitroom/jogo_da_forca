@@ -6,17 +6,15 @@
     <h1>Jogo da Forca</h1>
     <canvas id="forcaCanvas" width="200" height="250"></canvas>
     <div class="palavra-secreta" id="palavraSecreta">
-        {% if palavra %}
-            {% for letra in palavra %}
-                {% if letra == " " %}
-                    &nbsp;
-                {% else %}
-                    _
-                {% endif %}
-            {% endfor %}
-        {% else %}
+        {% for letra in palavra %}
+            {% if letra == " " %}
+                &nbsp;
+            {% else %}
+                _
+            {% endif %}
+        {% empty %}
             Nenhuma palavra disponível
-        {% endif %}
+        {% endfor %}
     </div>
     <div class="letras-escolhidas">
         <strong>Letras escolhidas:</strong> <span id="letrasEscolhidas">Nenhuma</span>
