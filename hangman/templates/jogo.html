@@ -1,113 +1,29 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>{% block titulo %}{% endblock %} Jogo da Forca</title>
-    <link href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" rel="stylesheet"/>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f4f4f9;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .container {
-            text-align: center;
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            width: 90%;
-            max-width: 600px;
-        }
-        h1 {
-            margin: 0;
-            color: #333;
-        }
-
-        canvas {
-            background-color: #f4f4f9;
-            margin-bottom: 20px;
-        }
-        .palavra-secreta {
-            font-size: 2rem;
-            letter-spacing: 10px;
-            margin-bottom: 20px;
-        }
-        .letras-escolhidas {
-            margin-bottom: 20px;
-        }
-        .letras-escolhidas span {
-            margin: 5px;
-            font-size: 1.2rem;
-            display: inline-block;
-            color: #007bff;
-        }
-        .teclado {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 10px;
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        .teclado button {
-            padding: 10px;
-            font-size: 1rem;
-            cursor: pointer;
-            border: none;
-            background-color: #007bff;
-            color: white;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
-        }
-        .teclado button:hover {
-            background-color: #0056b3;
-        }
-        .teclado button:disabled {
-            background-color: #aaa;
-            cursor: not-allowed;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <nav>
-            <ul>
-                <li><a href="{% url 'index' %}">Início</a></li>
-                {% if user.is_authenticated %}
-                    <li><a href="{% url 'logout' %}">Sair</a></li>
+{% block titulo %}Jogo da Forca{% endblock %}
+<link href="{% static 'css/jogo.css' %}" rel="stylesheet"/>
+{% block content %}
+    <h1>Jogo da Forca</h1>
+    <canvas id="forcaCanvas" width="200" height="250"></canvas>
+    <div class="palavra-secreta" id="palavraSecreta">
+        {% if palavra %}
+            {% for letra in palavra %}
+                {% if letra == " " %}
+                    &nbsp;
                 {% else %}
-                    <li><a href="{% url 'login' %}">Entrar</a></li>
+                    _
                 {% endif %}
-            </ul>
-        </nav>
-        <h1>Jogo da Forca</h1>
-        <canvas id="forcaCanvas" width="200" height="250"></canvas>
-        <div class="palavra-secreta" id="palavraSecreta">
-            {% if palavra %}
-                {% for letra in palavra %}
-                    {% if letra == " " %}
-                        &nbsp;
-                    {% else %}
-                        _
-                    {% endif %}
-                {% endfor %}
-            {% else %}
-                Nenhuma palavra disponível
-            {% endif %}
-        </div>
-
-        <div class="letras-escolhidas">
-            <strong>Letras escolhidas:</strong> <span id="letrasEscolhidas">Nenhuma</span>
-        </div>
-        <div class="teclado" id="teclado"></div>
+            {% endfor %}
+        {% else %}
+            Nenhuma palavra disponível
+        {% endif %}
     </div>
-
+    <div class="letras-escolhidas">
+        <strong>Letras escolhidas:</strong> <span id="letrasEscolhidas">Nenhuma</span>
+    </div>
+    <div class="teclado" id="teclado"></div>
+{% endblock %}
+{% block tail %}
     <script>
         const palavra = "{{ palavra|default_if_none:'' }}".toUpperCase();
         let letrasEscolhidas = [];
@@ -142,6 +58,7 @@
                 const botao = document.createElement('button');
                 botao.innerText = letra;
                 botao.onclick = () => selecionarLetra(letra);
+                botao.classList.add('btn', 'btn-primary', 'm-1');
                 tecladoDiv.appendChild(botao);
             });
         }
@@ -179,5 +96,4 @@
             desenharForca(0);
         }
     </script>
-</body>
-</html>
+{% endblock %}
